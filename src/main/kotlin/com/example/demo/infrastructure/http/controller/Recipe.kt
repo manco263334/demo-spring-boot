@@ -1,0 +1,78 @@
+package com.example.demo.infrastructure.http.controller
+
+import com.example.demo.application.use_cases.recipe.CreateRecipeRequest
+import com.example.demo.application.use_cases.recipe.UpdateRecipeRequest
+import com.example.demo.domain.models.UserModel
+import com.example.demo.infrastructure.dto.RecipeDTO
+import com.example.demo.infrastructure.http.service.RecipeService
+import com.example.demo.infrastructure.http.utils.mapper.toEntity
+import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.web.bind.annotation.DeleteMapping
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.RestController
+
+@RestController
+@RequestMapping("/api/recipes")
+class RecipeController (
+    private val service: RecipeService
+) {
+    @PostMapping("/", "")
+    fun create (
+        @RequestBody data: CreateRecipeRequest
+    ): RecipeDTO {
+        var user = SecurityContextHolder.getContext().authentication?.principal ?: "Authentication not set"
+            user = user as UserModel
+
+        val recipe = service.save(data, user.toEntity())
+        recipe.creator = null
+        return recipe
+    }
+
+    @GetMapping("/", "", "/all")
+    fun getAll (
+        @RequestParam(value = "withCategories", required = false) withCategories: Boolean?,
+        @RequestParam(value = "withCreator", required = false) withCreator: Boolean?
+    ): List<RecipeDTO> {
+        return service.findAll (
+            withCategories = withCategories,
+            withCreator = withCreator
+        )
+    }
+
+    @GetMapping("/{id}")
+    fun getById (
+        @PathVariable id: String,
+        @RequestParam(value = "withCategories", required = false) withCategories: Boolean?,
+        @RequestParam(value = "withCreator", required = false) withCreator: Boolean?
+    ): RecipeDTO? {
+        return service.findById (
+            id = id,
+            withCategories = withCategories,
+            withCreator = withCreator
+        )
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("authentication.principal.recipes.?[#this == #id].size() > 0")
+    fun update (
+        @PathVariable id: String,
+        @RequestBody data: UpdateRecipeRequest
+    ): RecipeDTO {
+        return service.update(id, data)
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("authentication.principal.recipes.?[#this == #id].size() > 0")
+    fun delete (
+        @PathVariable id: String
+    ) {
+        service.delete(id)
+    }
+}
