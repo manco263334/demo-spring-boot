@@ -2,9 +2,11 @@ package com.example.demo.infrastructure.http.controller
 
 import com.example.demo.application.use_cases.user.UpdateUserRequest
 import com.example.demo.domain.entities.UserEntity
+import com.example.demo.domain.models.UserModel
 import com.example.demo.infrastructure.dto.UserDTO
 import com.example.demo.infrastructure.http.service.UserService
 import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -13,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import kotlin.reflect.typeOf
 
 @RestController
 @RequestMapping("/api/users")
@@ -32,8 +35,8 @@ class UserController (
     fun getById (
         @PathVariable id: String,
         @RequestParam(value = "withRecipes", required = false) withRecipes: Boolean?
-    ): UserDTO? {
-        return service.findById(id, withRecipes)
+    ): UserDTO {
+        return service.findById(id, withRecipes) ?: throw NoSuchElementException("User with id '$id' not found")
     }
 
     @PutMapping("/{id}")

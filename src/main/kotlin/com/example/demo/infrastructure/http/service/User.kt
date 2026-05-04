@@ -15,11 +15,10 @@ class UserService (
     private val repository: UserRepository,
     private val userUpdateUseCase: UpdateUser
 ) {
-
     fun findById(id: String, withRecipes: Boolean?): UserDTO? {
-        val user = repository.findById(id).getOrNull()?.toDTO() ?: throw Error("User with id '$id' not found")
+        val user = repository.findById(id).getOrNull()?.toDTO()
 
-        if (withRecipes.isNullOrFalse()) {
+        if (withRecipes.isNullOrFalse() && user != null) {
             user.recipes = null
         }
 

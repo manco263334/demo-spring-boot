@@ -7,6 +7,7 @@ import com.example.demo.infrastructure.dto.RecipeDTO
 import com.example.demo.infrastructure.http.service.RecipeService
 import com.example.demo.infrastructure.http.utils.mapper.toEntity
 import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.security.access.prepost.PreFilter
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -24,11 +25,11 @@ class RecipeController (
     private val service: RecipeService
 ) {
     @PostMapping("/", "")
+    @PreAuthorize("authentication != null")
     fun create (
         @RequestBody data: CreateRecipeRequest
     ): RecipeDTO {
-        var user = SecurityContextHolder.getContext().authentication?.principal ?: "Authentication not set"
-            user = user as UserModel
+        val user = SecurityContextHolder.getContext().authentication!!.principal as UserModel
 
         val recipe = service.save(data, user.toEntity())
         recipe.creator = null
@@ -36,6 +37,7 @@ class RecipeController (
     }
 
     @GetMapping("/", "", "/all")
+    @PreAuthorize("#withCreator == true ? hasRole('ADMIN') : true")
     fun getAll (
         @RequestParam(value = "withCategories", required = false) withCategories: Boolean?,
         @RequestParam(value = "withCreator", required = false) withCreator: Boolean?
@@ -47,16 +49,17 @@ class RecipeController (
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("#withCreator == true ? hasRole('ADMIN') : true")
     fun getById (
         @PathVariable id: String,
         @RequestParam(value = "withCategories", required = false) withCategories: Boolean?,
         @RequestParam(value = "withCreator", required = false) withCreator: Boolean?
-    ): RecipeDTO? {
+    ): RecipeDTO {
         return service.findById (
             id = id,
             withCategories = withCategories,
             withCreator = withCreator
-        )
+        ) ?: throw NoSuchElementException("Recipe with id '$id' not found")
     }
 
     @PutMapping("/{id}")

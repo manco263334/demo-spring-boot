@@ -41,7 +41,7 @@ class AuthService (
 
     fun login (data: LoginRequest): AuthResponse {
         authenticationManager.authenticate(UsernamePasswordAuthenticationToken(data.email, data.password))
-        val user = repository.findByEmail(data.email)?.toModel() ?: throw Error("User not found")
+        val user = repository.findByEmail(data.email)?.toModel() ?: throw NoSuchElementException("User with email '${data.email}' not found")
         val token: String = jwt.getToken(mapOf("id" to user.id!!), user)
         return AuthResponse(token)
     }

@@ -24,7 +24,7 @@ class UpdateUser (
 ) {
     @Transactional
     fun execute (payload: UpdateUserRequest): UserDTO {
-        val transaction = repository.findById(payload.id!!).getOrNull() ?: throw Error("User with id '${payload.id}' not found")
+        val transaction = repository.findById(payload.id!!).getOrNull() ?: throw NoSuchElementException("User with id '${payload.id}' not found")
 
         if (payload.email.isNeitherNullNorBlank()) {
             transaction.email = payload.email

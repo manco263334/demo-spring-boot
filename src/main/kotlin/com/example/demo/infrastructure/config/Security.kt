@@ -1,10 +1,10 @@
 package com.example.demo.infrastructure.config
 
 import com.example.demo.infrastructure.jwt.JWTAuthenticationFilter
+import jakarta.servlet.http.HttpServletResponse
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.authentication.AuthenticationProvider
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
@@ -24,10 +24,23 @@ class SecurityConfig (
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
         return http
             .csrf { it.disable() }
+            .exceptionHandling { exceptions ->
+                exceptions.authenticationEntryPoint { _, response, exception ->
+                    response.status = HttpServletResponse.SC_UNAUTHORIZED
+                    response.contentType = "application/json"
+                    response.writer.write("""
+                        {
+                            "error": "No autorizado",
+                            "message": "Debes iniciar sesión para acceder a este recurso.",
+                            "debug": "${exception.message}"
+                        }
+                    """.trimIndent())
+                }
+            }
             .authorizeHttpRequests { request ->
                 request
-                    .requestMatchers("/api/auth/**").permitAll()
-                    .anyRequest().authenticated()
+                    .requestMatchers("/api/users/**").authenticated()
+                    .anyRequest().permitAll()
             }
             .sessionManagement { sessionManager ->
                 sessionManager

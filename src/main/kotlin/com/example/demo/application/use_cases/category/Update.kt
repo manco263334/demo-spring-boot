@@ -20,7 +20,7 @@ class UpdateCategory (
 ) {
     @Transactional
     fun execute (payload: UpdateCategoryRequest): CategoryDTO {
-        val transaction = repository.findById(payload.id!!).getOrNull() ?: throw Error("Category with id '${payload.id}' not found")
+        val transaction = repository.findById(payload.id!!).getOrNull() ?: throw NoSuchElementException("Category with id '${payload.id}' not found")
 
         if (payload.name.isNeitherNullNorBlank()) {
             transaction.name = payload.name

@@ -32,9 +32,9 @@ class CategoryService (
     }
 
     fun findById (id: String, withRecipes: Boolean?): CategoryDTO? {
-        val category = repository.findById(id).getOrNull()?.toDTO() ?: throw Error("Category with id '$id' not found")
+        val category = repository.findById(id).getOrNull()?.toDTO()
 
-        if (withRecipes.isNullOrFalse()) {
+        if (withRecipes.isNullOrFalse() && category != null) {
             category.recipes = null
         }
 

@@ -18,11 +18,17 @@ class RecipeService (
     private val createRecipeUseCase: CreateRecipe,
     private val updateRecipeUseCase: UpdateRecipe
 ) {
-    fun save (data: CreateRecipeRequest, user: UserEntity): RecipeDTO {
+    fun save (
+        data: CreateRecipeRequest,
+        user: UserEntity
+    ): RecipeDTO {
         return createRecipeUseCase.execute(data, user)
     }
 
-    fun findAll (withCategories: Boolean?, withCreator: Boolean?): List<RecipeDTO> {
+    fun findAll (
+        withCategories: Boolean?,
+        withCreator: Boolean?
+    ): List<RecipeDTO> {
         var recipes = repository.findAll().map { it.toDTO() }
 
         if (withCategories.isNullOrFalse()) {
@@ -36,7 +42,11 @@ class RecipeService (
         return recipes
     }
 
-    fun findById (id: String, withCategories: Boolean?, withCreator: Boolean?): RecipeDTO? {
+    fun findById (
+        id: String,
+        withCategories: Boolean?,
+        withCreator: Boolean?
+    ): RecipeDTO? {
         val recipe = repository.findById(id).getOrNull()?.toDTO()
 
         if (withCategories.isNullOrFalse() && recipe != null) {
@@ -50,12 +60,17 @@ class RecipeService (
         return recipe
     }
 
-    fun update (id: String, data: UpdateRecipeRequest): RecipeDTO {
+    fun update (
+        id: String,
+        data: UpdateRecipeRequest
+    ): RecipeDTO {
         data.id = id
         return updateRecipeUseCase.execute(data)
     }
 
-    fun delete (id: String) {
+    fun delete (
+        id: String
+    ) {
         return repository.deleteById(id)
     }
 }

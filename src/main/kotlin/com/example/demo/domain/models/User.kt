@@ -21,7 +21,7 @@ data class UserModel (
     var recipes: List<String> = emptyList()
 ): UserDetails {
     override fun getAuthorities(): Collection<GrantedAuthority> {
-        return listOf(SimpleGrantedAuthority(this.role.name))
+        return listOf(SimpleGrantedAuthority("ROLE_${this.role.name}"))
     }
 
     override fun getPassword(): String {

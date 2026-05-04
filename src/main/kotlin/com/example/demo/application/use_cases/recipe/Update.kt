@@ -31,7 +31,7 @@ class UpdateRecipe (
 ) {
     @Transactional
     fun execute (payload: UpdateRecipeRequest): RecipeDTO {
-        val transaction = repository.findById(payload.id!!).getOrNull() ?: throw Error("Recipe with id '${payload.id}' not found")
+        val transaction = repository.findById(payload.id!!).getOrNull() ?: throw NoSuchElementException("Recipe with id '${payload.id}' not found")
 
         if (payload.name.isNeitherNullNorBlank()) {
             transaction.name = payload.name
