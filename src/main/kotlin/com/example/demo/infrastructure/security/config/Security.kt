@@ -1,6 +1,6 @@
-package com.example.demo.infrastructure.config
+package com.example.demo.infrastructure.security.config
 
-import com.example.demo.infrastructure.jwt.JWTAuthenticationFilter
+import com.example.demo.infrastructure.security.jwt.JWTAuthenticationFilter
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -19,7 +19,6 @@ class SecurityConfig (
     private final val jwtAuthenticationFilter: JWTAuthenticationFilter,
     private final val authProvider: AuthenticationProvider,
 ) {
-
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
         return http

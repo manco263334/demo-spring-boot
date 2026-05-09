@@ -1,5 +1,6 @@
-package com.example.demo.infrastructure.handler
+package com.example.demo.infrastructure.security.handler
 
+import jakarta.servlet.ServletException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.authorization.AuthorizationDeniedException
@@ -45,12 +46,23 @@ class GlobalHandlerException {
             ))
     }
 
+    @ExceptionHandler(ServletException::class)
+    fun handleServletException(ex: ServletException): ResponseEntity<Map<String, String>> {
+        val cause = ex.cause
+        // Si la causa original es nuestra excepción de "no encontrado", la manejamos como tal
+        if (cause is NoSuchElementException || ex.message?.contains("not found") == true) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(mapOf("error" to "No encontrado", "message" to (cause?.message ?: ex.message ?: "")))
+        }
+        return handleGeneralError(ex)
+    }
+
     @ExceptionHandler(Exception::class)
     fun handleGeneralError(ex: Exception): ResponseEntity<Map<String, String>> {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
             .body(mapOf(
                 "error" to "Error interno",
-                "message" to "Algo explotó en el servidor"
+                "message" to (ex.message ?: "Algo explotó en el servidor")
             ))
     }
 }

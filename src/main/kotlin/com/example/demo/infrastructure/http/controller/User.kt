@@ -5,6 +5,10 @@ import com.example.demo.domain.entities.UserEntity
 import com.example.demo.domain.models.UserModel
 import com.example.demo.infrastructure.dto.UserDTO
 import com.example.demo.infrastructure.http.service.UserService
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Pageable
+import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -25,9 +29,14 @@ class UserController (
     @GetMapping("/", "", "/all")
     @PreAuthorize("hasRole('ADMIN')")
     fun getAll (
+        @RequestParam(value = "page", defaultValue = "0") page: Int,
+        @RequestParam(value = "pageSize", defaultValue = "10") pageSize: Int,
         @RequestParam(value = "withRecipes", required = false) withRecipes: Boolean?
-    ): List<UserDTO> {
-        return service.findAll(withRecipes)
+    ): ResponseEntity<Page<UserDTO>> {
+        val pageable = PageRequest.of(page, pageSize)
+        val response = service.findAll(pageable, withRecipes)
+
+        return ResponseEntity.ok(response)
     }
 
     @GetMapping("/{id}")
@@ -35,8 +44,10 @@ class UserController (
     fun getById (
         @PathVariable id: String,
         @RequestParam(value = "withRecipes", required = false) withRecipes: Boolean?
-    ): UserDTO {
-        return service.findById(id, withRecipes) ?: throw NoSuchElementException("User with id '$id' not found")
+    ): ResponseEntity<UserDTO> {
+        val response = service.findById(id, withRecipes) ?: throw NoSuchElementException("User with id '$id' not found")
+
+        return ResponseEntity.ok(response)
     }
 
     @PutMapping("/{id}")
@@ -44,15 +55,19 @@ class UserController (
     fun update (
         @PathVariable id: String,
         @RequestBody data: UpdateUserRequest
-    ): UserDTO {
-        return service.update(id, data)
+    ): ResponseEntity<UserDTO> {
+        val response = service.update(id, data)
+
+        return ResponseEntity.ok(response)
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
     fun delete (
         @PathVariable id: String
-    ) {
-        return service.delete(id)
+    ): ResponseEntity<Unit> {
+        val response = service.delete(id)
+
+        return ResponseEntity.ok(response)
     }
 }

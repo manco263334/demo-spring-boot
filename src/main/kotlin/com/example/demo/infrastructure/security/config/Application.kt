@@ -1,9 +1,10 @@
-package com.example.demo.infrastructure.config
+package com.example.demo.infrastructure.security.config
 
 import com.example.demo.infrastructure.http.utils.mapper.toModel
 import com.example.demo.infrastructure.repository.UserRepository
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.data.web.config.EnableSpringDataWebSupport
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.AuthenticationProvider
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider
@@ -13,6 +14,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
 
 @Configuration
+@EnableSpringDataWebSupport(pageSerializationMode = EnableSpringDataWebSupport.PageSerializationMode.VIA_DTO)
 class ApplicationConfig (
     private final val userRepository: UserRepository
 ) {
@@ -32,7 +34,7 @@ class ApplicationConfig (
     @Bean
     fun userDetailsService(): UserDetailsService {
         return UserDetailsService { email: String ->
-            val user = userRepository.findByEmail(email) ?: throw Error("User not found")
+            val user = userRepository.findByEmail(email) ?: throw Error("User with email '$email' not found")
 
             user.toModel()
         }

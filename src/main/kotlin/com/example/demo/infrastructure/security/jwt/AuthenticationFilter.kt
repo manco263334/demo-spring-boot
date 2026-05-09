@@ -1,4 +1,4 @@
-package com.example.demo.infrastructure.jwt
+package com.example.demo.infrastructure.security.jwt
 
 import com.example.demo.infrastructure.http.service.JWTService
 import jakarta.servlet.FilterChain
@@ -24,7 +24,7 @@ class JWTAuthenticationFilter (
         response: HttpServletResponse,
         filterChain: FilterChain
     ) {
-        val token: String = getTokenFromCookie(request) ?: return filterChain.doFilter(request, response)
+        val token: String = getTokenFromRequest(request) ?: return filterChain.doFilter(request, response)
 
         val username = jwtService.getUsernameFromToken(token)
 
@@ -43,10 +43,6 @@ class JWTAuthenticationFilter (
         filterChain.doFilter(request, response)
     }
 
-    @Deprecated (
-        "Se decidió cambiar la manera de guardar el token a una cookie",
-        ReplaceWith("getTokenFromCookie")
-    )
     private fun getTokenFromRequest(request: HttpServletRequest): String? {
         val authHeader: String? = request.getHeader(HttpHeaders.AUTHORIZATION)
         val BEARER = "Bearer "

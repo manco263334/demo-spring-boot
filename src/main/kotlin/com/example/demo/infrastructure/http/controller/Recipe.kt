@@ -6,6 +6,10 @@ import com.example.demo.domain.models.UserModel
 import com.example.demo.infrastructure.dto.RecipeDTO
 import com.example.demo.infrastructure.http.service.RecipeService
 import com.example.demo.infrastructure.http.utils.mapper.toEntity
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Pageable
+import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.access.prepost.PreFilter
 import org.springframework.security.core.context.SecurityContextHolder
@@ -25,7 +29,7 @@ class RecipeController (
     private val service: RecipeService
 ) {
     @PostMapping("/", "")
-    @PreAuthorize("authentication != null")
+    @PreAuthorize("authentication?.principal != 'anonymousUser'")
     fun create (
         @RequestBody data: CreateRecipeRequest
     ): RecipeDTO {
@@ -39,13 +43,19 @@ class RecipeController (
     @GetMapping("/", "", "/all")
     @PreAuthorize("#withCreator == true ? hasRole('ADMIN') : true")
     fun getAll (
+        @RequestParam(value = "page", defaultValue = "0") page: Int,
+        @RequestParam(value = "size", defaultValue = "10") size: Int,
         @RequestParam(value = "withCategories", required = false) withCategories: Boolean?,
         @RequestParam(value = "withCreator", required = false) withCreator: Boolean?
-    ): List<RecipeDTO> {
-        return service.findAll (
+    ): ResponseEntity<Page<RecipeDTO>> {
+        val pageable = PageRequest.of(page, size)
+        val response = service.findAll (
+            pageable,
             withCategories = withCategories,
             withCreator = withCreator
         )
+
+        return ResponseEntity.ok(response)
     }
 
     @GetMapping("/{id}")
@@ -54,12 +64,14 @@ class RecipeController (
         @PathVariable id: String,
         @RequestParam(value = "withCategories", required = false) withCategories: Boolean?,
         @RequestParam(value = "withCreator", required = false) withCreator: Boolean?
-    ): RecipeDTO {
-        return service.findById (
+    ): ResponseEntity<RecipeDTO> {
+        val response = service.findById (
             id = id,
             withCategories = withCategories,
             withCreator = withCreator
         ) ?: throw NoSuchElementException("Recipe with id '$id' not found")
+
+        return ResponseEntity.ok(response)
     }
 
     @PutMapping("/{id}")
@@ -67,15 +79,19 @@ class RecipeController (
     fun update (
         @PathVariable id: String,
         @RequestBody data: UpdateRecipeRequest
-    ): RecipeDTO {
-        return service.update(id, data)
+    ): ResponseEntity<RecipeDTO> {
+        val response = service.update(id, data)
+
+        return ResponseEntity.ok(response)
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("authentication.principal.recipes.?[#this == #id].size() > 0")
     fun delete (
         @PathVariable id: String
-    ) {
-        service.delete(id)
+    ): ResponseEntity<Unit> {
+        val response = service.delete(id)
+
+        return ResponseEntity.ok(response)
     }
 }

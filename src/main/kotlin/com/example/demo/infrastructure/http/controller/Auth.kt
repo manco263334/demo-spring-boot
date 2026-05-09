@@ -7,6 +7,7 @@ import com.example.demo.infrastructure.http.utils.mapper.toModel
 import jakarta.servlet.http.Cookie
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -14,7 +15,16 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 data class AuthResponse (
-    val token: String
+    val token: String,
+    val name: String,
+    val username: String?
+)
+
+data class MeResponse (
+    val id: String,
+    val email: String,
+    val name: String,
+    val username: String?
 )
 
 @RestController
@@ -70,7 +80,10 @@ class AuthController (
     }
 
     @GetMapping("/me")
-    fun me () {
-        return service.me()
+    @PreAuthorize("authentication?.principal != 'anonymousUser'")
+    fun me (): ResponseEntity<MeResponse> {
+        val response = service.me()
+
+        return ResponseEntity.ok(response)
     }
 }
